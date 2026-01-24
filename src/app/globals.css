@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* CSS Variables - Premium Monochrome */
+:root {
+  /* Default (Dark) variables */
+  --color-deep-space: #0A0A0A;
+  --color-accent: #E8E8E8;
+  --color-accent-dim: #888888;
+  --color-muted-gray: #999999;
+  --color-soft-white: #F5F5F5;
+  --color-card-bg: rgba(255, 255, 255, 0.03);
+  --color-border: rgba(255, 255, 255, 0.1);
+}
+
+/* Light Mode Overrides - Improved Contrast */
+.light {
+  --color-deep-space: #FFFFFF;
+  /* Pure white background */
+  --color-accent: #007AFF;
+  /* Bright blue accent for interactive elements */
+  --color-accent-dim: #0051D5;
+  /* Darker blue for dimmed accents */
+  --color-muted-gray: #454545;
+  /* Darker gray for better readability */
+  --color-soft-white: #000000;
+  /* Pure black for primary text */
+  --color-card-bg: rgba(0, 0, 0, 0.03);
+  /* Subtle card background */
+  --color-border: rgba(0, 0, 0, 0.15);
+  /* More visible borders */
+}
+
+/* Base Styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-deep-space);
+  color: var(--color-soft-white);
+  font-family: var(--font-poppins), var(--font-harmony), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Font Classes */
+.font-poppins {
+  font-family: var(--font-poppins), sans-serif;
+  letter-spacing: 0.02em;
+}
+
+.font-harmony {
+  font-family: var(--font-harmony), sans-serif;
+}
+
+/* Headings and Navigation use Poppins for English, HarmonyOS for Chinese */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+nav,
+.nav-item,
+.brand-name {
+  font-family: var(--font-harmony), var(--font-poppins), sans-serif;
+  font-weight: 700;
+}
+
+/* Numbers and Data use Poppins */
+.data-number,
+.metric,
+.stat {
+  font-family: var(--font-poppins), sans-serif;
+  font-weight: 600;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-deep-space);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.5);
+}
+
+/* Selection - Theme-aware */
+::selection {
+  background-color: var(--color-accent);
+  color: var(--color-deep-space);
+}
+
+/* Focus Outline */
+*:focus-visible {
+  outline: 1px solid var(--color-accent-dim);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for all interactive elements */
+a,
+button {
+  transition: color 0.2s, background-color 0.2s, border-color 0.2s, transform 0.2s, opacity 0.2s;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Prevent dragging of images and videos */
+img,
+video {
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+/* Typography utilities */
+@layer utilities {
+  .tracking-wide {
+    letter-spacing: 0.05em;
+  }
+
+  .tracking-wider {
+    letter-spacing: 0.1em;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Line clamp utilities */
+@layer utilities {
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Hide scrollbar for horizontal scroll */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
