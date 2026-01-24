@@ -125,7 +125,7 @@ export const products: Product[] = [
         nameEn: 'Vortex-F1 Standard Edition',
         tagline: vortexF1Data.tagline,
         taglineEn: vortexF1Data.taglineEn,
-        price: '$69,999',
+        price: '$89,999',
         image: '/img/product/hero.jpg',
         video: '/video/bg.mp4',
         highlights: vortexF1Data.highlights,
