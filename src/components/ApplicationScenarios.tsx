@@ -99,11 +99,7 @@ export function ApplicationScenarios(): JSX.Element {
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-soft-white mb-6">
                         {locale === 'zh' ? '应用场景' : 'Application Scenarios'}
                     </h2>
-                    <p className="text-lg md:text-xl text-muted-gray max-w-2xl">
-                        {locale === 'zh'
-                            ? '测试'
-                            : 'Test'}
-                    </p>
+
                 </motion.div>
 
                 {/* Navigation Buttons + Cards */}
