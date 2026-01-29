@@ -1,9 +1,48 @@
-
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://www.liftflycar.com/</loc></url>
-  <url><loc>https://www.liftflycar.com/product/</loc></url>
-  <url><loc>https://www.liftflycar.com/news/</loc></url>
-  <url><loc>https://www.liftflycar.com/about/</loc></url>
-  <url><loc>https://www.liftflycar.com/preorder/</loc></url>
+<urlset
+    xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+>
+
+<url>
+ <loc>https://www.liftflycar.com/</loc>
+ <priority>0.3</priority>
+ <lastmod>2026-01-29</lastmod>
+ <changefreq>weekly</changefreq>
+</url>
+
+<url>
+ <loc>https://www.liftflycar.com/product</loc>
+ <priority>0.3</priority>
+ <lastmod>2026-01-29</lastmod>
+ <changefreq>weekly</changefreq>
+</url>
+
+<url>
+ <loc>https://www.liftflycar.com/news</loc>
+ <priority>0.3</priority>
+ <lastmod>2026-01-29</lastmod>
+ <changefreq>weekly</changefreq>
+</url>
+
+<url>
+ <loc>https://www.liftflycar.com/about</loc>
+ <priority>0.3</priority>
+ <lastmod>2026-01-29</lastmod>
+ <changefreq>weekly</changefreq>
+</url>
+
+<url>
+ <loc>https://www.liftflycar.com/preorder</loc>
+ <priority>0.3</priority>
+ <lastmod>2026-01-29</lastmod>
+ <changefreq>weekly</changefreq>
+</url>
+
+<url>
+ <loc>https://www.liftflycar.com/policy</loc>
+ <priority>0.3</priority>
+ <lastmod>2026-01-29</lastmod>
+ <changefreq>weekly</changefreq>
+</url>
+
 </urlset>
