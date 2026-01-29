@@ -1,0 +1,8 @@
+# robots.txt for https://www.liftflycar.com
+User-agent: *
+Disallow: /*?id=
+Allow: /
+Crawl-delay: 60
+
+# Sitemaps
+Sitemap: https://liftflycar.com/sitemap.xml
