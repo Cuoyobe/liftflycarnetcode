@@ -4,11 +4,6 @@
 <!-- 可选：加一个项目封面图或演示动图 -->
 ![项目演示](https://github.com/你的用户名/项目名/raw/main/assets/demo.gif)
 
-![GitHub Stars](https://img.shields.io/github/stars/Cuoyobe/liftflycarnetcode)
-![GitHub Forks](https://img.shields.io/github/forks/Cuoyobe/liftflycarnetcode)
-![GitHub License](https://img.shields.io/github/license/Cuoyobe/liftflycarnetcode)
-![GitHub Last Commit](https://img.shields.io/github/last-commit/Cuoyobe/liftflycarnetcode)
-
 ## 📊 项目：liftflycar.com
 
 ### 🏗️ 项目架构
