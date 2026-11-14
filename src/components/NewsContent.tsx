@@ -1,139 +1,218 @@
 'use client';
 
-import { useState } from 'react';
-import { NewsCard } from '@/components/NewsCard';
+import { useRef, useState } from 'react';
+import { ArrowDown, ArrowUpRight, Newspaper, Search, X } from 'lucide-react';
 import type { NewsItem } from '@/lib/notion';
 import { useLocale } from '@/context/LocaleContext';
+import styles from './NewsContent.module.css';
 
 interface NewsContentProps {
     newsItems: NewsItem[];
+    previewItems?: { zh: NewsItem[]; en: NewsItem[] };
 }
 
-/**
- * 新闻列表客户端组件
- * 处理国际化和渲染逻辑
- */
-export function NewsContent({ newsItems }: NewsContentProps): JSX.Element {
+const copy = {
+    zh: {
+        title: '新闻中心', latest: '最新消息', more: '更多领飞特动态', update: '新闻动态',
+        search: '搜索新闻', clear: '清除搜索', results: '搜索结果',
+        noResults: '没有找到相关消息', tryAgain: '试试其他关键词，或查看全部新闻。',
+        reset: '查看全部新闻', empty: '新的消息，即将到来。',
+        emptyDescription: '领飞特的最新动态将在这里与你见面。',
+        loadMore: '加载更多', preview: '示例内容', count: (count: number) => `${count} 条消息`,
+    },
+    en: {
+        title: 'Newsroom', latest: 'Latest updates', more: 'More from Aerolus', update: 'UPDATE',
+        search: 'Search Newsroom', clear: 'Clear search', results: 'Search results',
+        noResults: 'No matching updates', tryAgain: 'Try another keyword or explore all our news.',
+        reset: 'View all news', empty: 'More to come.',
+        emptyDescription: 'Find the latest news from Aerolus here soon.',
+        loadMore: 'Load more', preview: 'Sample content',
+        count: (count: number) => `${count} ${count === 1 ? 'update' : 'updates'}`,
+    },
+};
+
+function newsLink(value: string): string | undefined {
+    const trimmed = value.trim();
+    if (!trimmed || trimmed.startsWith('#')) return undefined;
+    try {
+        const url = new URL(/^[a-z][a-z\d+.-]*:/i.test(trimmed) ? trimmed : `https://${trimmed}`);
+        return ['https:', 'http:'].includes(url.protocol) ? url.href : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+function timestamp(value: string): number {
+    const result = Date.parse(value);
+    return Number.isNaN(result) ? 0 : result;
+}
+
+function NewsArticle({ item, variant, locale, preview = false }: {
+    item: NewsItem;
+    variant: 'lead' | 'card' | 'compact' | 'row';
+    locale: 'zh' | 'en';
+    preview?: boolean;
+}): JSX.Element {
+    const [failedCover, setFailedCover] = useState<string | null>(null);
+    const href = newsLink(item.link);
+    const date = timestamp(item.publishedAt);
+    const content = (
+        <>
+            <div className={styles.media}>
+                {item.cover && failedCover !== item.cover ? (
+                    // Notion covers may be temporary URLs from different media hosts.
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                        src={item.cover}
+                        alt=""
+                        loading={variant === 'lead' ? 'eager' : 'lazy'}
+                        decoding="async"
+                        onError={() => setFailedCover(item.cover)}
+                    />
+                ) : (
+                    <div className={styles.imageFallback} aria-hidden="true">
+                        <Newspaper size={36} strokeWidth={1.2} />
+                        <span>AEROLUS</span>
+                    </div>
+                )}
+            </div>
+            <div className={styles.articleBody}>
+                <span className={styles.category}>{preview ? copy[locale].preview : copy[locale].update}</span>
+                <h3>{item.title}</h3>
+                {date !== 0 && (
+                    <time dateTime={new Date(date).toISOString()}>
+                        {new Intl.DateTimeFormat(locale === 'zh' ? 'zh-CN' : 'en-US', {
+                            year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC',
+                        }).format(date)}
+                    </time>
+                )}
+            </div>
+            {href && variant === 'row' && <ArrowUpRight className={styles.rowArrow} size={20} aria-hidden="true" />}
+        </>
+    );
+
+    return (
+        <article className={`${styles.article} ${styles[variant]}`}>
+            {href ? (
+                <a href={href} target="_blank" rel="noopener noreferrer" className={styles.articleInner}>
+                    {content}
+                </a>
+            ) : <div className={styles.articleInner}>{content}</div>}
+        </article>
+    );
+}
+
+const FEATURED_COUNT = 6;
+const PAGE_SIZE = 8;
+
+export function NewsContent({ newsItems, previewItems }: NewsContentProps): JSX.Element {
     const { locale } = useLocale();
-    const [currentPage, setCurrentPage] = useState(1);
-    const ITEMS_PER_PAGE = 5;
+    const t = copy[locale];
+    const [query, setQuery] = useState('');
+    const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+    const searchRef = useRef<HTMLInputElement>(null);
+    const isPreview = newsItems.length === 0 && !!previewItems;
+    const items = [...(isPreview ? previewItems[locale] : newsItems)]
+        .sort((a, b) => timestamp(b.publishedAt) - timestamp(a.publishedAt));
+    const normalizedQuery = query.trim().toLocaleLowerCase();
+    const searching = normalizedQuery.length > 0;
+    const filteredItems = items.filter((item) =>
+        `${item.title} ${item.summary}`.toLocaleLowerCase().includes(normalizedQuery));
+    const featured = items.slice(0, FEATURED_COUNT);
+    const listItems = searching ? filteredItems : items.slice(FEATURED_COUNT);
+    const visibleItems = listItems.slice(0, visibleCount);
 
-    const content = {
-        zh: {
-            title: '新闻动态',
-            subtitle: '关注我们的最近进展',
-            noNews: '暂无消息',
-            prev: '上一页',
-            next: '下一页',
-        },
-        en: {
-            title: 'News',
-            subtitle: 'Follow our latest news',
-            noNews: 'No news yet',
-            prev: 'Prev',
-            next: 'Next',
-        }
-    };
-
-    const t = locale === 'zh' ? content.zh : content.en;
-
-    // Pagination Logic
-    const totalPages = Math.ceil(newsItems.length / ITEMS_PER_PAGE);
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const displayedNews = newsItems.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-    const handlePageChange = (page: number) => {
-        setCurrentPage(page);
-        // Optional: Scroll to top of list
-        document.getElementById('news-list-top')?.scrollIntoView({ behavior: 'smooth' });
+    const clearSearch = () => {
+        setQuery('');
+        setVisibleCount(PAGE_SIZE);
+        searchRef.current?.focus();
     };
 
     return (
-        <>
-            {/* Hero Section */}
-            <section className="relative h-[40vh] md:h-[50vh] w-full overflow-hidden">
-                <div className="absolute inset-0 bg-deep-space">
-                    <div
-                        className="absolute inset-0 bg-cover bg-center opacity-80"
-                        style={{ backgroundImage: 'url(/img/fly5.webp)' }}
-                    />
-                    {/* 渐变遮罩 - 底部渐变衔接 */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-deep-space via-deep-space/40 to-transparent" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-deep-space/60 via-transparent to-transparent" />
+        <div className={styles.newsroom}>
+            <header className={styles.localNav}>
+                <div className={styles.navInner}>
+                    <h1>{t.title}</h1>
+                    <form role="search" className={styles.search} onSubmit={(event) => event.preventDefault()}>
+                        <Search size={16} aria-hidden="true" />
+                        <input
+                            ref={searchRef}
+                            type="search"
+                            aria-label={t.search}
+                            placeholder={t.search}
+                            value={query}
+                            onChange={(event) => { setQuery(event.target.value); setVisibleCount(PAGE_SIZE); }}
+                            onKeyDown={(event) => { if (event.key === 'Escape') clearSearch(); }}
+                        />
+                        {query && (
+                            <button type="button" onClick={clearSearch} aria-label={t.clear} title={t.clear}>
+                                <X size={15} aria-hidden="true" />
+                            </button>
+                        )}
+                    </form>
                 </div>
+            </header>
 
-                <div className="relative z-10 h-full flex items-center justify-center px-6">
-                    <div className="text-center">
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-soft-white mb-4">
-                            {t.title}
-                        </h1>
-                        <p className="text-lg md:text-xl text-soft-white/60">
-                            {t.subtitle}
-                        </p>
-                    </div>
-                </div>
-            </section>
-
-            {/* News List */}
-            <section id="news-list-top" className="relative py-20 px-6 md:px-12 lg:px-20">
-                <div className="max-w-4xl mx-auto space-y-8 min-h-[600px]">
-                    {displayedNews.map((item, index) => (
-                        <div
-                            key={item.id}
-                            className="transform transition-all duration-300 hover:scale-[1.02]"
-                        >
-                            <NewsCard item={item} index={index + startIndex} />
+            <div className={styles.container}>
+                {!searching && (
+                    <section className={styles.latest} aria-labelledby="latest-news-heading">
+                        <div className={styles.sectionHeading}>
+                            <h2 id="latest-news-heading">{t.latest}</h2>
+                            {isPreview && <span className={styles.previewLabel}>{t.preview}</span>}
                         </div>
-                    ))}
-
-                    {displayedNews.length === 0 && (
-                        <div className="text-center text-muted-gray py-20">
-                            {t.noNews}
-                        </div>
-                    )}
-                </div>
-
-                {/* Pagination Controls */}
-                {totalPages > 1 && (
-                    <div className="max-w-4xl mx-auto mt-16 flex items-center justify-center gap-4">
-                        {/* Prev Button */}
-                        <button
-                            onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                            disabled={currentPage === 1}
-                            className="px-4 py-2 rounded-full border border-white/10 text-soft-white text-sm hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                        >
-                            {t.prev}
-                        </button>
-
-                        {/* Page Numbers */}
-                        <div className="flex items-center gap-2">
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                <button
-                                    key={page}
-                                    onClick={() => handlePageChange(page)}
-                                    className={`
-                                        w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300
-                                        ${currentPage === page
-                                            ? 'bg-soft-white text-deep-space scale-110 shadow-lg shadow-white/10'
-                                            : 'bg-white/5 text-muted-gray hover:bg-white/10 hover:text-soft-white'}
-                                    `}
-                                >
-                                    {page}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Next Button */}
-                        <button
-                            onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                            disabled={currentPage === totalPages}
-                            className="px-4 py-2 rounded-full border border-white/10 text-soft-white text-sm hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                        >
-                            {t.next}
-                        </button>
-                    </div>
+                        {featured.length > 0 ? (
+                            <div className={styles.featuredGrid}>
+                                {featured.map((item, index) => (
+                                    <NewsArticle
+                                        key={item.id} item={item}
+                                        variant={index === 0 ? 'lead' : index < 3 ? 'card' : 'compact'}
+                                        locale={locale} preview={isPreview}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className={styles.empty}>
+                                <Newspaper size={36} strokeWidth={1.3} aria-hidden="true" />
+                                <h3>{t.empty}</h3>
+                                <p>{t.emptyDescription}</p>
+                            </div>
+                        )}
+                    </section>
                 )}
-            </section>
-        </>
+
+                {(searching || listItems.length > 0) && (
+                    <section className={styles.archive} aria-labelledby="more-news-heading">
+                        <div className={styles.sectionHeading}>
+                            <h2 id="more-news-heading">{searching ? t.results : t.more}</h2>
+                            {searching && <span className={styles.resultCount} role="status">{t.count(filteredItems.length)}</span>}
+                        </div>
+                        {visibleItems.length > 0 ? (
+                            <div className={styles.newsList}>
+                                {visibleItems.map((item) => (
+                                    <NewsArticle key={item.id} item={item} variant="row" locale={locale} preview={isPreview} />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className={styles.empty}>
+                                <Search size={32} strokeWidth={1.3} aria-hidden="true" />
+                                <h3>{t.noResults}</h3>
+                                <p>{t.tryAgain}</p>
+                                <button type="button" className={styles.textButton} onClick={clearSearch}>{t.reset}</button>
+                            </div>
+                        )}
+                        {listItems.length > visibleCount && (
+                            <div className={styles.loadMoreWrap}>
+                                <button
+                                    type="button" className={styles.loadMore}
+                                    onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+                                >
+                                    {t.loadMore}<ArrowDown size={17} aria-hidden="true" />
+                                </button>
+                            </div>
+                        )}
+                    </section>
+                )}
+            </div>
+        </div>
     );
 }
